@@ -532,6 +532,10 @@ abstract class CalendarDate
         $primaryCalendar = static::calendar();
 
         foreach ($matches as [$token, $value]) {
+            if ($value === '') {
+                continue; // skip empty matches
+            }
+
             $calendar = $token->calendar() ?? $primaryCalendar;
             $parsedValue = $token->parse($value, $calendar, $locale);
 
