@@ -2,17 +2,17 @@
 <phpdocumentor configVersion="3" xmlns="https://www.phpdoc.org">
     <title>civil-date API</title>
     <paths>
-        <output>.site</output>
-        <cache>.phpdoc-cache</cache>
+        <output>./.site</output>
+        <cache>./.phpdoc-cache</cache>
     </paths>
     <version number="latest">
         <api ignore-packages="true">
             <source>
-                <path>src</path>
+                <path>./src</path>
             </source>
             <visibility>public</visibility>
             <visibility>protected</visibility>
         </api>
     </version>
-    <template name="docs/template" />
+    <template name="./docs/template" />
 </phpdocumentor>
