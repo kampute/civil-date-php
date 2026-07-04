@@ -5,6 +5,6 @@
   <version>1.0.0</version>
   <extends>default</extends>
   <transformations>
-    <transformation writer="FileIo" query="copy" source="static" artifact="/" />
+    <transformation writer="FileIo" query="copy" source="static" artifact="./" />
   </transformations>
 </template>
