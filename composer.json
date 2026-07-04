@@ -1,0 +1,59 @@
+{
+    "name": "kampute/civil-date",
+    "description": "Accurate Jalali, Gregorian, and Islamic date handling for PHP, with Persian calendar dates based on the official Nowruz rule.",
+    "keywords": [
+        "civil-date",
+        "jalali-date",
+        "jalali-calendar",
+        "persian-date",
+        "persian-calendar",
+        "gregorian-date",
+        "gregorian-calendar",
+        "islamic-date",
+        "islamic-calendar",
+        "hijri-date",
+        "hijri-calendar",
+        "date-formatting",
+        "date-parsing",
+        "date-localization",
+        "persian-numerals"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kambiz Khojasteh"
+        }
+    ],
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10",
+        "phpstan/phpstan": "^2",
+        "friendsofphp/php-cs-fixer": "^3",
+        "phpdocumentor/phpdocumentor": "^3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kampute\\CivilDate\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kampute\\CivilDate\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "php -d memory_limit=512M vendor/bin/phpstan analyse",
+        "cs-check": "php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "php-cs-fixer fix",
+        "docs": [
+            "php vendor/bin/phpdoc --force",
+            "php docs/build-home.php"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

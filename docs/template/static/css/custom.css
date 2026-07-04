@@ -1,0 +1,12 @@
+.phpdocumentor-header__menu-button,
+.phpdocumentor-header__menu-icon {
+    display: none;
+}
+
+@media (min-width: 550px) {
+    .phpdocumentor-description > p:first-child:has(+ h1) {
+        display: inline;
+        float: right;
+        margin-top: 1em;
+    }
+}

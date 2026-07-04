@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpdocumentor configVersion="3" xmlns="https://www.phpdoc.org">
+    <title>civil-date API</title>
+    <paths>
+        <output>.site</output>
+        <cache>.phpdoc-cache</cache>
+    </paths>
+    <version number="latest">
+        <api ignore-packages="true">
+            <source dsn=".">
+                <path>src</path>
+            </source>
+            <visibility>public</visibility>
+            <visibility>protected</visibility>
+        </api>
+    </version>
+    <template name="template" location="docs" />
+</phpdocumentor>

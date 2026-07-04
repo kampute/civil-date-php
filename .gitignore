@@ -1,0 +1,12 @@
+/vendor/
+/composer.lock
+/.phpunit.cache/
+/.phpdoc-cache/
+/.php-cs-fixer.cache
+/.site
+/.idea
+/.vscode
+/.agents
+/.codex
+/.claude
+/.junie
