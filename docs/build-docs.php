@@ -48,7 +48,7 @@ function temporaryPhpDocumentorConfig(string $projectDir, string $sourceConfigPa
     $xpath = new DOMXPath($document);
     $xpath->registerNamespace('phpdoc', 'https://www.phpdoc.org');
 
-    setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:output', absolutePath($projectDir . '/.site'));
+    setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:output', fileUri($projectDir . '/.site'));
     setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:cache', absolutePath($projectDir . '/.phpdoc-cache'));
 
     foreach ($xpath->query('//phpdoc:version/phpdoc:api/phpdoc:source') ?: [] as $source) {
@@ -56,7 +56,7 @@ function temporaryPhpDocumentorConfig(string $projectDir, string $sourceConfigPa
             continue;
         }
 
-        $source->setAttribute('dsn', absolutePath($projectDir));
+        $source->setAttribute('dsn', fileUri($projectDir));
 
         foreach ($xpath->query('phpdoc:path', $source) ?: [] as $path) {
             if (!$path instanceof DOMElement) {
@@ -82,6 +82,20 @@ function temporaryPhpDocumentorConfig(string $projectDir, string $sourceConfigPa
 function absolutePath(string $path): string
 {
     return str_replace('\\', '/', $path);
+}
+
+/**
+ * Returns a file URI for a local path.
+ */
+function fileUri(string $path): string
+{
+    $path = absolutePath($path);
+
+    if (preg_match('~^[A-Za-z]:/~', $path) === 1) {
+        return 'file:///' . $path;
+    }
+
+    return 'file://' . $path;
 }
 
 /**
