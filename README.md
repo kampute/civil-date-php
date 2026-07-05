@@ -12,7 +12,7 @@ This library derives each Jalali year from the vernal equinox in Iran civil time
 
 ## Features
 
-- Immutable date classes, one for each of the Jalali, Gregorian, and Islamic calendars.
+- Comprehensive date handling for Jalali, Gregorian, and Islamic calendars.
 - Date construction from multiple sources: conversion from another calendar, from a day-of-year, from the nth weekday occurrence in a month or year, and more.
 - Formatting and parsing of dates from text, including month and day names, seasons and eras, and numbers as digits or words, matching the locale.
 - Date comparison by day, week, month, quarter, and year.
