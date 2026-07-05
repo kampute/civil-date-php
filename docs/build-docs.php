@@ -11,21 +11,41 @@ require dirname(__DIR__) . '/vendor/autoload.php';
  */
 function runPhpDocumentor(string $projectDir): void
 {
-    $configPath = $projectDir . '/.phpdoc-cache/phpdoc.build.xml';
-    writeFileOrFail(
-        $configPath,
-        temporaryPhpDocumentorConfig($projectDir, $projectDir . '/phpdoc.xml'),
-        'temporary phpDocumentor config'
-    );
+    $configPath = $projectDir . '/phpdoc.xml';
+    $workingDir = $projectDir . '/.phpdoc-cache';
 
-    $command = implode(' ', [
+    if (!is_dir($workingDir) && !mkdir($workingDir, 0777, true) && !is_dir($workingDir)) {
+        fail("Unable to create phpDocumentor working directory: {$workingDir}");
+    }
+
+    $command = [
         escapeshellarg(PHP_BINARY),
         escapeshellarg($projectDir . '/vendor/bin/phpdoc'),
         '--force',
-        '--config=' . escapeshellarg($configPath),
-    ]);
+        '--title=' . escapeshellarg(phpDocumentorConfigTitle($configPath)),
+        '--target=' . escapeshellarg(absolutePath($projectDir . '/.site')),
+        '--cache-folder=' . escapeshellarg(absolutePath($projectDir . '/.phpdoc-cache')),
+    ];
 
-    passthru($command, $exitCode);
+    foreach (phpDocumentorConfigSourcePaths($projectDir, $configPath) as $sourcePath) {
+        $command[] = '--directory=' . escapeshellarg($sourcePath);
+    }
+
+    foreach (phpDocumentorConfigVisibilities($configPath) as $visibility) {
+        $command[] = '--visibility=' . escapeshellarg($visibility);
+    }
+
+    $previousWorkingDir = getcwd();
+
+    if ($previousWorkingDir === false || !chdir($workingDir)) {
+        fail("Unable to enter phpDocumentor working directory: {$workingDir}");
+    }
+
+    passthru(implode(' ', $command), $exitCode);
+
+    if (!chdir($previousWorkingDir)) {
+        fail("Unable to restore working directory: {$previousWorkingDir}");
+    }
 
     if ($exitCode !== 0) {
         fail("phpDocumentor failed with exit code {$exitCode}.");
@@ -33,47 +53,91 @@ function runPhpDocumentor(string $projectDir): void
 }
 
 /**
- * Builds a temporary phpDocumentor config from phpdoc.xml with absolute paths.
+ * Loads the phpDocumentor config XML.
  */
-function temporaryPhpDocumentorConfig(string $projectDir, string $sourceConfigPath): string
+function phpDocumentorConfigDocument(string $configPath): DOMDocument
 {
     $document = new DOMDocument();
     $document->preserveWhiteSpace = false;
     $document->formatOutput = true;
 
-    if (!$document->load($sourceConfigPath)) {
-        fail("Unable to parse phpDocumentor config: {$sourceConfigPath}");
+    if (!$document->load($configPath)) {
+        fail("Unable to parse phpDocumentor config: {$configPath}");
     }
 
-    $xpath = new DOMXPath($document);
-    $xpath->registerNamespace('phpdoc', 'https://www.phpdoc.org');
+    return $document;
+}
 
-    setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:output', fileUri($projectDir . '/.site'));
-    setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:cache', absolutePath($projectDir . '/.phpdoc-cache'));
+/**
+ * Returns the configured documentation title.
+ */
+function phpDocumentorConfigTitle(string $configPath): string
+{
+    $xpath = phpDocumentorConfigXPath($configPath);
+    $nodes = $xpath->query('//phpdoc:title');
 
-    foreach ($xpath->query('//phpdoc:version/phpdoc:api/phpdoc:source') ?: [] as $source) {
-        if (!$source instanceof DOMElement) {
+    if ($nodes === false || $nodes->length !== 1) {
+        fail('Unable to read phpDocumentor title.');
+    }
+
+    return trim($nodes->item(0)->textContent);
+}
+
+/**
+ * Returns absolute source paths from the phpDocumentor config.
+ *
+ * @return list<string>
+ */
+function phpDocumentorConfigSourcePaths(string $projectDir, string $configPath): array
+{
+    $xpath = phpDocumentorConfigXPath($configPath);
+    $paths = [];
+
+    foreach ($xpath->query('//phpdoc:version/phpdoc:api/phpdoc:source/phpdoc:path') ?: [] as $path) {
+        if (!$path instanceof DOMElement) {
             continue;
         }
 
-        $source->setAttribute('dsn', fileUri($projectDir));
+        $paths[] = absolutePath($projectDir . '/' . relativeSourcePath($projectDir, $path->textContent));
+    }
 
-        foreach ($xpath->query('phpdoc:path', $source) ?: [] as $path) {
-            if (!$path instanceof DOMElement) {
-                continue;
-            }
+    if ($paths === []) {
+        fail('Unable to read phpDocumentor source paths.');
+    }
 
-            $path->nodeValue = relativeSourcePath($projectDir, $path->textContent);
+    return $paths;
+}
+
+/**
+ * Returns configured API visibilities.
+ *
+ * @return list<string>
+ */
+function phpDocumentorConfigVisibilities(string $configPath): array
+{
+    $xpath = phpDocumentorConfigXPath($configPath);
+    $visibilities = [];
+
+    foreach ($xpath->query('//phpdoc:version/phpdoc:api/phpdoc:visibility') ?: [] as $visibility) {
+        if (!$visibility instanceof DOMElement) {
+            continue;
         }
+
+        $visibilities[] = trim($visibility->textContent);
     }
 
-    $xml = $document->saveXML();
+    return $visibilities;
+}
 
-    if ($xml === false) {
-        fail('Unable to serialize temporary phpDocumentor config.');
-    }
+/**
+ * Returns an XPath instance for the phpDocumentor config.
+ */
+function phpDocumentorConfigXPath(string $configPath): DOMXPath
+{
+    $xpath = new DOMXPath(phpDocumentorConfigDocument($configPath));
+    $xpath->registerNamespace('phpdoc', 'https://www.phpdoc.org');
 
-    return $xml;
+    return $xpath;
 }
 
 /**
@@ -82,34 +146,6 @@ function temporaryPhpDocumentorConfig(string $projectDir, string $sourceConfigPa
 function absolutePath(string $path): string
 {
     return str_replace('\\', '/', $path);
-}
-
-/**
- * Returns a file URI for a local path.
- */
-function fileUri(string $path): string
-{
-    $path = absolutePath($path);
-
-    if (preg_match('~^[A-Za-z]:/~', $path) === 1) {
-        return 'file:///' . $path;
-    }
-
-    return 'file://' . $path;
-}
-
-/**
- * Sets one required config node value.
- */
-function setSingleConfigNode(DOMXPath $xpath, string $query, string $value): void
-{
-    $nodes = $xpath->query($query);
-
-    if ($nodes === false || $nodes->length !== 1) {
-        fail("Unable to update phpDocumentor config node: {$query}");
-    }
-
-    $nodes->item(0)->nodeValue = $value;
 }
 
 /**
@@ -149,8 +185,7 @@ final class DocumentationPage
         public string $title,
         public string $html,
         public array $headings,
-    ) {
-    }
+    ) {}
 }
 
 /**
@@ -162,8 +197,7 @@ final class Heading
         public int $level,
         public string $id,
         public string $text,
-    ) {
-    }
+    ) {}
 }
 
 /**
@@ -323,7 +357,7 @@ function topicPaths(string $topicsDir): array
 
     usort(
         $paths,
-        static fn (string $left, string $right): int => strcmp(basename($left), basename($right))
+        static fn(string $left, string $right): int => strcmp(basename($left), basename($right))
     );
 
     return $paths;
@@ -436,7 +470,7 @@ function renderPageShell(string $shell, DocumentationPage $page): string
 
     $updated = preg_replace_callback(
         '~(<div class="phpdocumentor-column -nine phpdocumentor-content">\s*)(.*?)(\s*</div>\s*<section data-search-results)~s',
-        static fn (array $matches): string => $matches[1] . $replacement . $matches[3],
+        static fn(array $matches): string => $matches[1] . $replacement . $matches[3],
         $shell,
         1,
         $count
@@ -485,6 +519,7 @@ function withBaseHref(string $html, string $outputPath): string
 {
     $depth = substr_count($outputPath, '/');
     $baseHref = $depth === 0 ? './' : str_repeat('../', $depth);
+
     $updated = preg_replace('~<base href="[^"]*">~', '<base href="' . $baseHref . '">', $html, 1, $count);
 
     if ($updated === null || $count !== 1) {
@@ -516,7 +551,7 @@ function rightSidebar(DocumentationPage $page): string
 {
     $headings = array_values(array_filter(
         $page->headings,
-        static fn (Heading $heading): bool => $heading->level > 1
+        static fn(Heading $heading): bool => $heading->level > 1
     ));
 
     if ($headings === []) {
@@ -610,6 +645,8 @@ function withGeneratedSidebarSections(string $html, string $sitePath): string
  */
 function withTopicsMenu(string $html, array $topics, string $currentSitePath): string
 {
+    $html = withBaseHref($html, $currentSitePath);
+
     $html = preg_replace(
         '~\s*<section class="phpdocumentor-sidebar__category -topics">.*?</section>~s',
         '',
