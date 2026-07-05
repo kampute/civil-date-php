@@ -9,16 +9,16 @@ use Kampute\CivilDate\CalendarDate;
 use Kampute\CivilDate\DateParseException;
 use Kampute\CivilDate\Localization\Locale;
 use Kampute\CivilDate\Localization\Numbers\NumberForm;
-use Kampute\CivilDate\Support\DatePattern\TokenDefinition;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 use LogicException;
 
 /**
  * Formats and parses localized number-word token values.
  */
-class NumberWord implements TokenDefinition
+class NumberWord implements ParsableTokenRule
 {
     /**
-     * Creates a number-word token definition.
+     * Creates a number-word token rule.
      *
      * @param string $property Calendar-date property name.
      * @param bool $ordinal Whether ordinal words are formatted and parsed.
@@ -30,7 +30,7 @@ class NumberWord implements TokenDefinition
     }
 
     /**
-     * Returns the semantic calendar-date property represented by this definition.
+     * Returns the semantic calendar-date property represented by this rule.
      *
      * @return string Calendar-date property name.
      */

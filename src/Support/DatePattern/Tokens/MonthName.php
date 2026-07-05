@@ -8,15 +8,15 @@ use Kampute\CivilDate\Calendar;
 use Kampute\CivilDate\CalendarDate;
 use Kampute\CivilDate\DateParseException;
 use Kampute\CivilDate\Localization\Locale;
-use Kampute\CivilDate\Support\DatePattern\TokenDefinition;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 
 /**
  * Formats and parses localized month-name token values.
  */
-class MonthName implements TokenDefinition
+class MonthName implements ParsableTokenRule
 {
     /**
-     * Creates a month-name token definition.
+     * Creates a month-name token rule.
      *
      * @param bool $abbreviated Whether abbreviated names are used.
      */
@@ -26,7 +26,7 @@ class MonthName implements TokenDefinition
     }
 
     /**
-     * Returns the semantic calendar-date property represented by this definition.
+     * Returns the semantic calendar-date property represented by this rule.
      *
      * @return string Calendar-date property name.
      */

@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests two-digit year token definitions.
+ * Tests two-digit year token rules.
  */
 final class TwoDigitYearTest extends TestCase
 {
@@ -24,8 +24,8 @@ final class TwoDigitYearTest extends TestCase
     #[DataProvider('captureRegexProvider')]
     public function testCaptureRegex(string $input, int $expected): void
     {
-        $tokenDefinition = new TwoDigitYear();
-        $regex = '~^' . $tokenDefinition->captureRegex() . '$~u';
+        $rule = new TwoDigitYear();
+        $regex = '~^' . $rule->captureRegex() . '$~u';
 
         self::assertSame($expected, preg_match($regex, $input));
     }
@@ -52,9 +52,9 @@ final class TwoDigitYearTest extends TestCase
     #[DataProvider('formatProvider')]
     public function testFormat(GregorianDate $date, string $expected): void
     {
-        $tokenDefinition = new TwoDigitYear();
+        $rule = new TwoDigitYear();
 
-        self::assertSame($expected, $tokenDefinition->format($date, new English()));
+        self::assertSame($expected, $rule->format($date, new English()));
     }
 
     /**
@@ -91,10 +91,10 @@ final class TwoDigitYearTest extends TestCase
     public function testParse(string $input, int $referenceYear, int $expected): void
     {
         GregorianDate::setTestToday(new GregorianDate($referenceYear, 1, 1));
-        $tokenDefinition = new TwoDigitYear();
+        $rule = new TwoDigitYear();
 
         try {
-            self::assertSame($expected, $tokenDefinition->parse($input, Calendar::Gregorian, new English()));
+            self::assertSame($expected, $rule->parse($input, Calendar::Gregorian, new English()));
         } finally {
             GregorianDate::setTestToday(null);
         }
@@ -132,10 +132,10 @@ final class TwoDigitYearTest extends TestCase
     public function testParseLocalizedDigits(): void
     {
         GregorianDate::setTestToday(new GregorianDate(2026, 1, 1));
-        $tokenDefinition = new TwoDigitYear();
+        $rule = new TwoDigitYear();
 
         try {
-            self::assertSame(2025, $tokenDefinition->parse('۲۵', Calendar::Gregorian, new Persian()));
+            self::assertSame(2025, $rule->parse('۲۵', Calendar::Gregorian, new Persian()));
         } finally {
             GregorianDate::setTestToday(null);
         }
@@ -149,8 +149,8 @@ final class TwoDigitYearTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('out of scope');
 
-        $tokenDefinition = new TwoDigitYear();
-        $tokenDefinition->parse('100', Calendar::Gregorian, new English());
+        $rule = new TwoDigitYear();
+        $rule->parse('100', Calendar::Gregorian, new English());
     }
 
     /**
@@ -161,8 +161,8 @@ final class TwoDigitYearTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Invalid year value');
 
-        $tokenDefinition = new TwoDigitYear();
-        $tokenDefinition->parse('twenty-five', Calendar::Gregorian, new English());
+        $rule = new TwoDigitYear();
+        $rule->parse('twenty-five', Calendar::Gregorian, new English());
     }
 
 }

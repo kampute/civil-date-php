@@ -13,7 +13,7 @@ use Kampute\CivilDate\Support\DatePattern\Tokens\DayOfWeekName;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests localized day-of-week-name token definitions.
+ * Tests localized day-of-week-name token rules.
  */
 final class DayOfWeekNameTest extends TestCase
 {
@@ -23,11 +23,11 @@ final class DayOfWeekNameTest extends TestCase
     public function testFormat(): void
     {
         $date = new GregorianDate(2025, 3, 21);
-        $tokenDefinition = new DayOfWeekName(abbreviated: false);
-        $abbreviatedTokenDefinition = new DayOfWeekName(abbreviated: true);
+        $rule = new DayOfWeekName(abbreviated: false);
+        $abbreviatedRule = new DayOfWeekName(abbreviated: true);
 
-        self::assertSame('Friday', $tokenDefinition->format($date, new English()));
-        self::assertSame('Fri', $abbreviatedTokenDefinition->format($date, new English()));
+        self::assertSame('Friday', $rule->format($date, new English()));
+        self::assertSame('Fri', $abbreviatedRule->format($date, new English()));
     }
 
     /**
@@ -35,12 +35,12 @@ final class DayOfWeekNameTest extends TestCase
      */
     public function testParse(): void
     {
-        $tokenDefinition = new DayOfWeekName(abbreviated: false);
-        $abbreviatedTokenDefinition = new DayOfWeekName(abbreviated: true);
+        $rule = new DayOfWeekName(abbreviated: false);
+        $abbreviatedRule = new DayOfWeekName(abbreviated: true);
 
-        self::assertSame(5, $tokenDefinition->parse('Friday', Calendar::Gregorian, new English()));
-        self::assertSame(5, $abbreviatedTokenDefinition->parse('Fri', Calendar::Gregorian, new English()));
-        self::assertSame(2, $tokenDefinition->parse('سه شنبه', Calendar::Gregorian, new Persian()));
+        self::assertSame(5, $rule->parse('Friday', Calendar::Gregorian, new English()));
+        self::assertSame(5, $abbreviatedRule->parse('Fri', Calendar::Gregorian, new English()));
+        self::assertSame(2, $rule->parse('سه شنبه', Calendar::Gregorian, new Persian()));
     }
 
     /**
@@ -51,7 +51,7 @@ final class DayOfWeekNameTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Unrecognized day of week name');
 
-        $tokenDefinition = new DayOfWeekName(abbreviated: false);
-        $tokenDefinition->parse('Unknown', Calendar::Gregorian, new English());
+        $rule = new DayOfWeekName(abbreviated: false);
+        $rule->parse('Unknown', Calendar::Gregorian, new English());
     }
 }

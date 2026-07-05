@@ -14,7 +14,7 @@ use Kampute\CivilDate\Support\DatePattern\Tokens\SeasonName;
 use Kampute\CivilDate\Support\DatePattern\Tokens\TwoDigitYear;
 
 /**
- * Stores date-pattern tokens by symbol.
+ * Stores date-pattern token rules by symbol.
  *
  * The registry provides these default tokens:
  *
@@ -38,8 +38,8 @@ use Kampute\CivilDate\Support\DatePattern\Tokens\TwoDigitYear;
  * - `C`: era name.
  * - `E`: abbreviated era name.
  *
- * @see TokenDefinition
- * @see PatternParser
+ * @see TokenRule
+ * @see PatternCompiler
  */
 final class TokenRegistry
 {
@@ -51,11 +51,11 @@ final class TokenRegistry
     private static ?self $shared = null;
 
     /**
-     * Definitions indexed by token symbol.
+     * Rules indexed by token symbol.
      *
-     * @var array<string,TokenDefinition>
+     * @var array<string,TokenRule>
      */
-    private array $definitions;
+    private array $rules;
 
     /**
      * Registry revision.
@@ -67,13 +67,13 @@ final class TokenRegistry
     /**
      * Creates a token registry.
      *
-     * @param array<string,TokenDefinition>|null $definitions Token definitions indexed by symbol, or null to use the built-in definitions.
+     * @param array<string,TokenRule>|null $rules Token rules indexed by symbol, or null to use the built-in rules.
      *
-     * @see TokenDefinition
+     * @see TokenRule
      */
-    public function __construct(?array $definitions = null)
+    public function __construct(?array $rules = null)
     {
-        $this->definitions = $definitions ?? [
+        $this->rules = $rules ?? [
             'Y' => new NumberDigit('year', minimumDigits: 4, signed: true),
             'V' => new NumberWord('year', ordinal: false),
             'y' => new TwoDigitYear(),
@@ -104,7 +104,7 @@ final class TokenRegistry
      *
      * @return self Shared token registry.
      *
-     * @see PatternParser::shared()
+     * @see PatternCompiler::shared()
      * @see \Kampute\CivilDate\CalendarDate::format()
      * @see \Kampute\CivilDate\CalendarDate::parse()
      */
@@ -114,51 +114,51 @@ final class TokenRegistry
     }
 
     /**
-     * Registers a token definition.
+     * Registers a token rule.
      *
      * @param string $symbol Pattern symbol.
-     * @param TokenDefinition $definition Token definition.
+     * @param TokenRule $rule Token rule.
      *
      * @return self This registry.
      *
      * @throws InvalidArgumentException If the symbol is invalid or already registered.
      */
-    public function register(string $symbol, TokenDefinition $definition): self
+    public function register(string $symbol, TokenRule $rule): self
     {
         $this->assertValidSymbol($symbol);
-        if (isset($this->definitions[$symbol])) {
+        if (isset($this->rules[$symbol])) {
             throw new InvalidArgumentException("Date-pattern token \"{$symbol}\" is already registered.");
         }
 
-        $this->definitions[$symbol] = $definition;
+        $this->rules[$symbol] = $rule;
         ++$this->revision;
         return $this;
     }
 
     /**
-     * Replaces a token definition.
+     * Replaces a token rule.
      *
      * @param string $symbol Pattern symbol.
-     * @param TokenDefinition $definition Token definition.
+     * @param TokenRule $rule Token rule.
      *
      * @return self This registry.
      *
      * @throws InvalidArgumentException If the symbol is invalid or not registered.
      */
-    public function replace(string $symbol, TokenDefinition $definition): self
+    public function replace(string $symbol, TokenRule $rule): self
     {
         $this->assertValidSymbol($symbol);
-        if (!isset($this->definitions[$symbol])) {
+        if (!isset($this->rules[$symbol])) {
             throw new InvalidArgumentException("Date-pattern token \"{$symbol}\" is not registered.");
         }
 
-        $this->definitions[$symbol] = $definition;
+        $this->rules[$symbol] = $rule;
         ++$this->revision;
         return $this;
     }
 
     /**
-     * Removes a token definition.
+     * Removes a token rule.
      *
      * @param string $symbol Pattern symbol.
      *
@@ -169,38 +169,38 @@ final class TokenRegistry
     public function remove(string $symbol): self
     {
         $this->assertValidSymbol($symbol);
-        if (!isset($this->definitions[$symbol])) {
+        if (!isset($this->rules[$symbol])) {
             throw new InvalidArgumentException("Date-pattern token \"{$symbol}\" is not registered.");
         }
 
-        unset($this->definitions[$symbol]);
+        unset($this->rules[$symbol]);
         ++$this->revision;
         return $this;
     }
 
     /**
-     * Returns the definition registered for a symbol.
+     * Returns the rule registered for a symbol.
      *
      * @param string $symbol Pattern symbol.
      *
-     * @return TokenDefinition|null Token definition, or null when no token is registered for the symbol.
+     * @return TokenRule|null Token rule, or null when no token is registered for the symbol.
      *
      * @see TokenRegistry::register()
      * @see TokenRegistry::replace()
      */
-    public function find(string $symbol): ?TokenDefinition
+    public function find(string $symbol): ?TokenRule
     {
-        return $this->definitions[$symbol] ?? null;
+        return $this->rules[$symbol] ?? null;
     }
 
     /**
-     * Returns the registered token definitions.
+     * Returns the registered token rules.
      *
-     * @return array<string,TokenDefinition> Token definitions indexed by symbol.
+     * @return array<string,TokenRule> Token rules indexed by symbol.
      */
-    public function definitions(): array
+    public function rules(): array
     {
-        return $this->definitions;
+        return $this->rules;
     }
 
     /**

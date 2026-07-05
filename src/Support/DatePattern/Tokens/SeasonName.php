@@ -8,15 +8,15 @@ use Kampute\CivilDate\Calendar;
 use Kampute\CivilDate\CalendarDate;
 use Kampute\CivilDate\DateParseException;
 use Kampute\CivilDate\Localization\Locale;
-use Kampute\CivilDate\Support\DatePattern\TokenDefinition;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 
 /**
  * Formats and parses localized season-name token values.
  */
-class SeasonName implements TokenDefinition
+class SeasonName implements ParsableTokenRule
 {
     /**
-     * Returns the semantic calendar-date property represented by this definition.
+     * Returns the semantic calendar-date property represented by this rule.
      *
      * @return string Calendar-date property name.
      */

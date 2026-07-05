@@ -15,7 +15,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests localized number-digit token definitions.
+ * Tests localized number-digit token rules.
  */
 final class NumberDigitTest extends TestCase
 {
@@ -25,10 +25,10 @@ final class NumberDigitTest extends TestCase
     public function testFormat(): void
     {
         $date = new GregorianDate(2025, 3, 21);
-        $tokenDefinition = new NumberDigit('month', minimumDigits: 2);
+        $rule = new NumberDigit('month', minimumDigits: 2);
 
-        self::assertSame('03', $tokenDefinition->format($date, new English()));
-        self::assertSame('۰۳', $tokenDefinition->format($date, new Persian()));
+        self::assertSame('03', $rule->format($date, new English()));
+        self::assertSame('۰۳', $rule->format($date, new Persian()));
     }
 
     /**
@@ -39,8 +39,8 @@ final class NumberDigitTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('not an integer');
 
-        $tokenDefinition = new NumberDigit('calendar');
-        $tokenDefinition->format(new GregorianDate(2025, 3, 21), new English());
+        $rule = new NumberDigit('calendar');
+        $rule->format(new GregorianDate(2025, 3, 21), new English());
     }
 
     /**
@@ -49,8 +49,8 @@ final class NumberDigitTest extends TestCase
     #[DataProvider('captureRegexProvider')]
     public function testCaptureRegex(bool $signed, string $input, int $expected): void
     {
-        $tokenDefinition = new NumberDigit('month', signed: $signed);
-        $regex = '~^' . $tokenDefinition->captureRegex() . '$~u';
+        $rule = new NumberDigit('month', signed: $signed);
+        $regex = '~^' . $rule->captureRegex() . '$~u';
 
         self::assertSame($expected, preg_match($regex, $input));
     }
@@ -82,9 +82,9 @@ final class NumberDigitTest extends TestCase
      */
     public function testParse(): void
     {
-        $tokenDefinition = new NumberDigit('month');
+        $rule = new NumberDigit('month');
 
-        self::assertSame(3, $tokenDefinition->parse('۳', Calendar::Gregorian, new Persian()));
+        self::assertSame(3, $rule->parse('۳', Calendar::Gregorian, new Persian()));
     }
 
     /**
@@ -95,8 +95,8 @@ final class NumberDigitTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Invalid month value');
 
-        $tokenDefinition = new NumberDigit('month');
-        $tokenDefinition->parse('invalid', Calendar::Gregorian, new English());
+        $rule = new NumberDigit('month');
+        $rule->parse('invalid', Calendar::Gregorian, new English());
     }
 
     /**
@@ -107,7 +107,7 @@ final class NumberDigitTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Invalid month value');
 
-        $tokenDefinition = new NumberDigit('month');
-        $tokenDefinition->parse('three', Calendar::Gregorian, new English());
+        $rule = new NumberDigit('month');
+        $rule->parse('three', Calendar::Gregorian, new English());
     }
 }

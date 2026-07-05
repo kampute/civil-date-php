@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Kampute\CivilDate;
 
-use BackedEnum;
 use DateTimeImmutable;
 use DateTimeInterface;
 use InvalidArgumentException;
@@ -18,7 +17,6 @@ use Kampute\CivilDate\Calendars\GregorianCalendar;
 use Kampute\CivilDate\Localization\Locale;
 use Kampute\CivilDate\Localization\LocaleRegistry;
 use Kampute\CivilDate\Support\DatePattern\PatternCompiler;
-use Kampute\CivilDate\Support\DatePattern\PatternParser;
 use Kampute\CivilDate\Support\YearNumbering;
 
 /**
@@ -510,7 +508,6 @@ abstract class CalendarDate
      *
      * @see CalendarDate::format()
      * @see PatternCompiler
-     * @see PatternParser
      */
     public static function parse(string $input, string $pattern, array $options = []): static
     {
@@ -522,27 +519,23 @@ abstract class CalendarDate
         $cleanPattern = self::normalizeParseText($pattern, $stripBidiControls, $normalizeWhitespace);
 
         $compiledPattern = PatternCompiler::shared()->compile($cleanPattern);
+        $primaryCalendar = static::calendar();
+
         $matches = $compiledPattern->match($cleanInput);
         if ($matches === false) {
             throw new DateParseException("Input \"{$input}\" does not match the pattern \"{$pattern}\".");
         }
 
-        /** @var array<int,array<string,int|null>> $parsedByCalendar */
+        /** @var array<int,array<string,int>> $parsedByCalendar */
         $parsedByCalendar = [];
-        $primaryCalendar = static::calendar();
-
-        foreach ($matches as [$token, $value]) {
-            if ($value === '') {
-                continue; // skip empty matches
-            }
-
-            $calendar = $token->calendar() ?? $primaryCalendar;
-            $parsedValue = $token->parse($value, $calendar, $locale);
+        foreach ($matches as [$capture, $value]) {
+            $property = $capture->property();
+            $calendar = $capture->calendarScope() ?? $primaryCalendar;
+            $parsedValue = $capture->parse($value, $primaryCalendar, $locale);
 
             $parsedByCalendar[$calendar->value] ??= [];
             $parsedValues = &$parsedByCalendar[$calendar->value];
 
-            $property = $token->property();
             if (isset($parsedValues[$property]) && $parsedValues[$property] !== $parsedValue) {
                 throw new DateParseException("Inconsistent values parsed for \"{$property}\" in calendar {$calendar->name}: {$parsedValues[$property]} and {$parsedValue}.");
             }
@@ -550,8 +543,9 @@ abstract class CalendarDate
             $parsedValues[$property] = $parsedValue;
         }
 
+        $primaryFields = $parsedByCalendar[$primaryCalendar->value] ?? [];
         try {
-            $date = self::dateFromParsedFields($parsedByCalendar[$primaryCalendar->value] ?? []);
+            $date = self::dateFromParsedFields($primaryFields);
         } catch (InvalidArgumentException $e) {
             throw new DateParseException("Invalid date components extracted from \"{$input}\": " . $e->getMessage(), previous: $e);
         }
@@ -1384,16 +1378,12 @@ abstract class CalendarDate
      * @throws DateOutOfRangeException When a scoped calendar conversion is outside the supported range.
      *
      * @see CalendarDate::parse()
-     * @see PatternParser
+     * @see PatternCompiler
      */
     public function format(string $pattern, array $options = []): string
     {
         $locale = self::toLocale($options['locale'] ?? null);
-
-        $result = '';
-        foreach (PatternParser::shared()->parse($pattern) as $segment) {
-            $result .= $segment->format($this, $locale);
-        }
+        $result = PatternCompiler::shared()->compile($pattern)->format($this, $locale);
 
         if (!empty($options['protectTextDirection'])) {
             $isolate = $locale->isRightToLeft() ? "\u{2067}" : "\u{2066}";
@@ -1494,15 +1484,16 @@ abstract class CalendarDate
     /**
      * Validates parsed property values against this date.
      *
-     * @param array<string,int|null> $expectedProperties Expected property values from parsing.
+     * @param array<string,int> $parsedProperties Parsed property values to validate against this date.
      *
      * @return void
      *
-     * @throws DateParseException If any expected property does not match this date.
+     * @throws DateParseException If any parsed property value does not match the corresponding value of this date.
      */
-    protected function validateParsedFields(array $expectedProperties): void
+    protected function validateParsedFields(array $parsedProperties): void
     {
-        foreach ($expectedProperties as $propertyName => $expectedValue) {
+        foreach ($parsedProperties as $propertyName => $expectedValue) {
+            // Retrieve the actual property value from this date as an integer
             $propertyValue = match ($propertyName) {
                 'year' => $this->year(),
                 'month' => $this->month(),
@@ -1519,10 +1510,11 @@ abstract class CalendarDate
             };
 
             if ($propertyValue === null) {
-                continue;
+                continue; // Non-comparable property, skip validation
             }
 
-            if (is_int($expectedValue) && $expectedValue < 0) {
+            // Adjust negative values to be relative to the end of the range
+            if ($expectedValue < 0) {
                 $expectedValue = match ($propertyName) {
                     'dayOfYear' => $this->daysInYear() + $expectedValue + 1,
                     'dayOfWeekInYear' => $this->daysOfWeekInYear($this->dayOfWeek()) + $expectedValue + 1,

@@ -10,13 +10,13 @@ use Kampute\CivilDate\Localization\Locale;
 /**
  * Represents literal text in a date pattern.
  *
- * @see Segment
- * @see PatternParser::parse()
+ * @see PatternElement
+ * @see PatternCompiler::compile()
  */
-final class Literal implements Segment
+final class TextElement implements PatternElement
 {
     /**
-     * Creates a date-pattern literal.
+     * Creates a date-pattern text element.
      *
      * @param string $text Literal text.
      */
@@ -36,11 +36,11 @@ final class Literal implements Segment
     }
 
     /**
-     * Returns a literal with appended text.
+     * Returns an element with appended literal text.
      *
      * @param string $text Text to append.
      *
-     * @return self Literal containing both text fragments.
+     * @return self Element containing both text fragments.
      */
     public function appended(string $text): self
     {
@@ -48,17 +48,7 @@ final class Literal implements Segment
     }
 
     /**
-     * Returns the regular-expression fragment for parsing this literal.
-     *
-     * @return string Regular-expression fragment.
-     */
-    public function captureRegex(): string
-    {
-        return preg_quote($this->text, '~');
-    }
-
-    /**
-     * Formats this literal for a date.
+     * Formats this element for a date.
      *
      * @param CalendarDate $date Date being formatted.
      * @param Locale $locale Locale definition.

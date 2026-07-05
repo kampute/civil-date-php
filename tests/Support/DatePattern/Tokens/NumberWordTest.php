@@ -13,7 +13,7 @@ use LogicException;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests localized number-word token definitions.
+ * Tests localized number-word token rules.
  */
 final class NumberWordTest extends TestCase
 {
@@ -23,11 +23,11 @@ final class NumberWordTest extends TestCase
     public function testFormat(): void
     {
         $date = new GregorianDate(2025, 3, 21);
-        $tokenDefinition = new NumberWord('year', ordinal: false);
-        $ordinalTokenDefinition = new NumberWord('day', ordinal: true);
+        $cardinalRule = new NumberWord('year', ordinal: false);
+        $ordinalRule = new NumberWord('day', ordinal: true);
 
-        self::assertSame('two thousand twenty-five', $tokenDefinition->format($date, new English()));
-        self::assertSame('twenty-first', $ordinalTokenDefinition->format($date, new English()));
+        self::assertSame('two thousand twenty-five', $cardinalRule->format($date, new English()));
+        self::assertSame('twenty-first', $ordinalRule->format($date, new English()));
     }
 
     /**
@@ -38,8 +38,8 @@ final class NumberWordTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('not an integer');
 
-        $tokenDefinition = new NumberWord('calendar', ordinal: false);
-        $tokenDefinition->format(new GregorianDate(2025, 3, 21), new English());
+        $rule = new NumberWord('calendar', ordinal: false);
+        $rule->format(new GregorianDate(2025, 3, 21), new English());
     }
 
     /**
@@ -47,13 +47,13 @@ final class NumberWordTest extends TestCase
      */
     public function testParse(): void
     {
-        $tokenDefinition = new NumberWord('year', ordinal: false);
-        $ordinalTokenDefinition = new NumberWord('day', ordinal: true);
+        $cardinalRule = new NumberWord('year', ordinal: false);
+        $ordinalRule = new NumberWord('day', ordinal: true);
 
-        self::assertSame(2025, $tokenDefinition->parse('two thousand twenty-five', Calendar::Gregorian, new English()));
-        self::assertSame(21, $ordinalTokenDefinition->parse('twenty-first', Calendar::Gregorian, new English()));
-        self::assertSame(-1, $ordinalTokenDefinition->parse('last', Calendar::Gregorian, new English()));
-        self::assertSame(-2, $ordinalTokenDefinition->parse('second-to-last', Calendar::Gregorian, new English()));
+        self::assertSame(2025, $cardinalRule->parse('two thousand twenty-five', Calendar::Gregorian, new English()));
+        self::assertSame(21, $ordinalRule->parse('twenty-first', Calendar::Gregorian, new English()));
+        self::assertSame(-1, $ordinalRule->parse('last', Calendar::Gregorian, new English()));
+        self::assertSame(-2, $ordinalRule->parse('second-to-last', Calendar::Gregorian, new English()));
     }
 
     /**
@@ -64,8 +64,8 @@ final class NumberWordTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Invalid month value');
 
-        $tokenDefinition = new NumberWord('month', ordinal: false);
-        $tokenDefinition->parse('invalid', Calendar::Gregorian, new English());
+        $rule = new NumberWord('month', ordinal: false);
+        $rule->parse('invalid', Calendar::Gregorian, new English());
     }
 
     /**
@@ -76,8 +76,8 @@ final class NumberWordTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Invalid month value');
 
-        $tokenDefinition = new NumberWord('month', ordinal: false);
-        $tokenDefinition->parse('third', Calendar::Gregorian, new English());
+        $rule = new NumberWord('month', ordinal: false);
+        $rule->parse('third', Calendar::Gregorian, new English());
     }
 
     /**
@@ -85,8 +85,8 @@ final class NumberWordTest extends TestCase
      */
     public function testOrdinalParseAcceptsCardinalWords(): void
     {
-        $tokenDefinition = new NumberWord('day', ordinal: true);
-        $this->assertSame(3, $tokenDefinition->parse('three', Calendar::Gregorian, new English()));
+        $rule = new NumberWord('day', ordinal: true);
+        $this->assertSame(3, $rule->parse('three', Calendar::Gregorian, new English()));
     }
 
     /**
@@ -97,7 +97,7 @@ final class NumberWordTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Invalid year value');
 
-        $tokenDefinition = new NumberWord('year', ordinal: false);
-        $tokenDefinition->parse('2025', Calendar::Gregorian, new English());
+        $rule = new NumberWord('year', ordinal: false);
+        $rule->parse('2025', Calendar::Gregorian, new English());
     }
 }

@@ -8,16 +8,16 @@ use Kampute\CivilDate\Calendar;
 use Kampute\CivilDate\CalendarDate;
 use Kampute\CivilDate\DateParseException;
 use Kampute\CivilDate\Localization\Locale;
-use Kampute\CivilDate\Support\DatePattern\TokenDefinition;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 use LogicException;
 
 /**
  * Formats and parses localized number-digit token values.
  */
-class NumberDigit implements TokenDefinition
+class NumberDigit implements ParsableTokenRule
 {
     /**
-     * Creates a localized number-digit token definition.
+     * Creates a localized number-digit token rule.
      *
      * @param string $property Calendar-date property name.
      * @param int $minimumDigits Minimum formatted digit width.
@@ -31,7 +31,7 @@ class NumberDigit implements TokenDefinition
     }
 
     /**
-     * Returns the semantic calendar-date property represented by this definition.
+     * Returns the semantic calendar-date property represented by this rule.
      *
      * @return string Calendar-date property name.
      */

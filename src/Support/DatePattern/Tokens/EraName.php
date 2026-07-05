@@ -8,15 +8,15 @@ use Kampute\CivilDate\Calendar;
 use Kampute\CivilDate\CalendarDate;
 use Kampute\CivilDate\DateParseException;
 use Kampute\CivilDate\Localization\Locale;
-use Kampute\CivilDate\Support\DatePattern\TokenDefinition;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 
 /**
  * Formats and parses localized era-name token values.
  */
-class EraName implements TokenDefinition
+class EraName implements ParsableTokenRule
 {
     /**
-     * Creates an era-name token definition.
+     * Creates an era-name token rule.
      *
      * @param bool $abbreviated Whether abbreviated era names are used.
      */
@@ -25,7 +25,7 @@ class EraName implements TokenDefinition
     }
 
     /**
-     * Returns the semantic calendar-date property represented by this definition.
+     * Returns the semantic calendar-date property represented by this rule.
      *
      * @return string Calendar-date property name.
      */

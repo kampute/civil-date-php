@@ -12,7 +12,7 @@ use Kampute\CivilDate\Support\DatePattern\Tokens\EraName;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests localized era-name token definitions.
+ * Tests localized era-name token rules.
  */
 final class EraNameTest extends TestCase
 {
@@ -21,11 +21,11 @@ final class EraNameTest extends TestCase
      */
     public function testFormat(): void
     {
-        $tokenDefinition = new EraName();
-        $abbreviatedTokenDefinition = new EraName(abbreviated: true);
+        $rule = new EraName();
+        $abbreviatedRule = new EraName(abbreviated: true);
 
-        self::assertSame('Common Era', $tokenDefinition->format(new GregorianDate(2025, 3, 21), new English()));
-        self::assertSame('CE', $abbreviatedTokenDefinition->format(new GregorianDate(2025, 3, 21), new English()));
+        self::assertSame('Common Era', $rule->format(new GregorianDate(2025, 3, 21), new English()));
+        self::assertSame('CE', $abbreviatedRule->format(new GregorianDate(2025, 3, 21), new English()));
     }
 
     /**
@@ -33,13 +33,13 @@ final class EraNameTest extends TestCase
      */
     public function testParse(): void
     {
-        $tokenDefinition = new EraName();
-        $abbreviatedTokenDefinition = new EraName(abbreviated: true);
+        $rule = new EraName();
+        $abbreviatedRule = new EraName(abbreviated: true);
 
-        self::assertSame(2, $tokenDefinition->parse('Common Era', Calendar::Gregorian, new English()));
-        self::assertSame(3, $tokenDefinition->parse('Hijri', Calendar::Gregorian, new English()));
-        self::assertSame(2, $abbreviatedTokenDefinition->parse('CE', Calendar::Gregorian, new English()));
-        self::assertSame(3, $abbreviatedTokenDefinition->parse('AH', Calendar::Gregorian, new English()));
+        self::assertSame(2, $rule->parse('Common Era', Calendar::Gregorian, new English()));
+        self::assertSame(3, $rule->parse('Hijri', Calendar::Gregorian, new English()));
+        self::assertSame(2, $abbreviatedRule->parse('CE', Calendar::Gregorian, new English()));
+        self::assertSame(3, $abbreviatedRule->parse('AH', Calendar::Gregorian, new English()));
     }
 
     /**
@@ -50,7 +50,7 @@ final class EraNameTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Unrecognized era name');
 
-        $tokenDefinition = new EraName();
-        $tokenDefinition->parse('Unknown', Calendar::Gregorian, new English());
+        $rule = new EraName();
+        $rule->parse('Unknown', Calendar::Gregorian, new English());
     }
 }

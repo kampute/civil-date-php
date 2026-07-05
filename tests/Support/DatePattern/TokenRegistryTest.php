@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kampute\CivilDate\Tests\Support\DatePattern;
 
 use InvalidArgumentException;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 use Kampute\CivilDate\Support\DatePattern\TokenRegistry;
 use Kampute\CivilDate\Support\DatePattern\Tokens\NumberDigit;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,18 +20,18 @@ final class TokenRegistryTest extends TestCase
      * Tests registered symbols resolve to their semantic properties.
      */
     #[DataProvider('registeredSymbolProvider')]
-    public function testRegisteredSymbolsResolveToDefinitions(string $symbol, string $property): void
+    public function testRegisteredSymbolsResolveToRules(string $symbol, string $property): void
     {
         $tokenRegistry = new TokenRegistry();
-        $definition = $tokenRegistry->find($symbol);
-        self::assertNotNull($definition);
-        self::assertSame($property, $definition->property());
+        $rule = $tokenRegistry->find($symbol);
+        self::assertInstanceOf(ParsableTokenRule::class, $rule);
+        self::assertSame($property, $rule->property());
     }
 
     /**
-     * Tests literal symbols do not resolve to token definitions.
+     * Tests text symbols do not resolve to token rules.
      */
-    public function testLiteralSymbolsAreNotRegistered(): void
+    public function testTextSymbolsAreNotRegistered(): void
     {
         $tokenRegistry = new TokenRegistry();
         self::assertNull($tokenRegistry->find('/'));
@@ -46,34 +47,34 @@ final class TokenRegistryTest extends TestCase
     }
 
     /**
-     * Tests custom definitions can be provided at construction.
+     * Tests custom rules can be provided at construction.
      */
-    public function testConstructorAcceptsCustomDefinitions(): void
+    public function testConstructorAcceptsCustomRules(): void
     {
-        $definition = new NumberDigit('year', minimumDigits: 4, signed: true);
-        $tokenRegistry = new TokenRegistry(['X' => $definition]);
+        $rule = new NumberDigit('year', minimumDigits: 4, signed: true);
+        $tokenRegistry = new TokenRegistry(['X' => $rule]);
 
-        self::assertSame($definition, $tokenRegistry->find('X'));
-        self::assertSame(['X' => $definition], $tokenRegistry->definitions());
+        self::assertSame($rule, $tokenRegistry->find('X'));
+        self::assertSame(['X' => $rule], $tokenRegistry->rules());
         self::assertNull($tokenRegistry->find('Y'));
         self::assertSame(0, $tokenRegistry->revision());
     }
 
     /**
-     * Tests registering new token definitions.
+     * Tests registering new token rules.
      */
-    public function testRegisterAddsNewDefinition(): void
+    public function testRegisterAddsNewRule(): void
     {
-        $definition = new NumberDigit('year', minimumDigits: 4, signed: true);
+        $rule = new NumberDigit('year', minimumDigits: 4, signed: true);
         $tokenRegistry = new TokenRegistry();
 
-        self::assertSame($tokenRegistry, $tokenRegistry->register('X', $definition));
-        self::assertSame($definition, $tokenRegistry->find('X'));
+        self::assertSame($tokenRegistry, $tokenRegistry->register('X', $rule));
+        self::assertSame($rule, $tokenRegistry->find('X'));
         self::assertSame(1, $tokenRegistry->revision());
     }
 
     /**
-     * Tests registering a duplicate token definition is rejected.
+     * Tests registering a duplicate token rule is rejected.
      */
     public function testRegisterRejectsRegisteredSymbol(): void
     {
@@ -84,20 +85,20 @@ final class TokenRegistryTest extends TestCase
     }
 
     /**
-     * Tests replacing existing token definitions.
+     * Tests replacing existing token rules.
      */
-    public function testReplaceUpdatesExistingDefinition(): void
+    public function testReplaceUpdatesExistingRule(): void
     {
-        $definition = new NumberDigit('day');
+        $rule = new NumberDigit('day');
         $tokenRegistry = new TokenRegistry();
 
-        self::assertSame($tokenRegistry, $tokenRegistry->replace('Y', $definition));
-        self::assertSame($definition, $tokenRegistry->find('Y'));
+        self::assertSame($tokenRegistry, $tokenRegistry->replace('Y', $rule));
+        self::assertSame($rule, $tokenRegistry->find('Y'));
         self::assertSame(1, $tokenRegistry->revision());
     }
 
     /**
-     * Tests replacing an unknown token definition is rejected.
+     * Tests replacing an unknown token rule is rejected.
      */
     public function testReplaceRejectsUnknownSymbol(): void
     {
@@ -108,20 +109,20 @@ final class TokenRegistryTest extends TestCase
     }
 
     /**
-     * Tests removing existing token definitions.
+     * Tests removing existing token rules.
      */
-    public function testRemoveDeletesExistingDefinition(): void
+    public function testRemoveDeletesExistingRule(): void
     {
         $tokenRegistry = new TokenRegistry();
 
         self::assertSame($tokenRegistry, $tokenRegistry->remove('Y'));
         self::assertNull($tokenRegistry->find('Y'));
-        self::assertArrayNotHasKey('Y', $tokenRegistry->definitions());
+        self::assertArrayNotHasKey('Y', $tokenRegistry->rules());
         self::assertSame(1, $tokenRegistry->revision());
     }
 
     /**
-     * Tests removing an unknown token definition is rejected.
+     * Tests removing an unknown token rule is rejected.
      */
     public function testRemoveRejectsUnknownSymbol(): void
     {

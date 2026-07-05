@@ -12,7 +12,7 @@ use Kampute\CivilDate\Support\DatePattern\Tokens\SeasonName;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests localized season-name token definitions.
+ * Tests localized season-name token rules.
  */
 final class SeasonNameTest extends TestCase
 {
@@ -21,9 +21,9 @@ final class SeasonNameTest extends TestCase
      */
     public function testFormat(): void
     {
-        $tokenDefinition = new SeasonName();
+        $rule = new SeasonName();
 
-        self::assertSame('Spring', $tokenDefinition->format(new GregorianDate(2025, 3, 21), new English()));
+        self::assertSame('Spring', $rule->format(new GregorianDate(2025, 3, 21), new English()));
     }
 
     /**
@@ -31,9 +31,9 @@ final class SeasonNameTest extends TestCase
      */
     public function testParse(): void
     {
-        $tokenDefinition = new SeasonName();
+        $rule = new SeasonName();
 
-        self::assertSame(1, $tokenDefinition->parse('Spring', Calendar::Gregorian, new English()));
+        self::assertSame(1, $rule->parse('Spring', Calendar::Gregorian, new English()));
     }
 
     /**
@@ -44,7 +44,7 @@ final class SeasonNameTest extends TestCase
         $this->expectException(DateParseException::class);
         $this->expectExceptionMessage('Unrecognized season name');
 
-        $tokenDefinition = new SeasonName();
-        $tokenDefinition->parse('Unknown', Calendar::Gregorian, new English());
+        $rule = new SeasonName();
+        $rule->parse('Unknown', Calendar::Gregorian, new English());
     }
 }

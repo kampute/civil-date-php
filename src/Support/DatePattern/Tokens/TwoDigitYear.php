@@ -8,17 +8,17 @@ use Kampute\CivilDate\Calendar;
 use Kampute\CivilDate\CalendarDate;
 use Kampute\CivilDate\DateParseException;
 use Kampute\CivilDate\Localization\Locale;
-use Kampute\CivilDate\Support\DatePattern\TokenDefinition;
+use Kampute\CivilDate\Support\DatePattern\ParsableTokenRule;
 use Kampute\CivilDate\Support\EuclideanDivision;
 use Kampute\CivilDate\Support\YearNumbering;
 
 /**
  * Formats and parses two-digit year token values.
  */
-class TwoDigitYear implements TokenDefinition
+class TwoDigitYear implements ParsableTokenRule
 {
     /**
-     * Returns the semantic calendar-date property represented by this definition.
+     * Returns the semantic calendar-date property represented by this rule.
      *
      * @return string Calendar-date property name.
      */
