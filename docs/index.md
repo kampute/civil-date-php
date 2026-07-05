@@ -1,18 +1,18 @@
 [![Version](https://img.shields.io/github/v/release/kampute/civil-date-php?label=Version)](https://github.com/kampute/civil-date-php/releases)
 
-# civil-date
+# Civil Date PHP Package
 
 Accurate Jalali, Gregorian, and Islamic date handling for PHP.
 
 This package handles Jalali, Gregorian, and Islamic dates with one consistent, predictable model. In the Jalali calendar, Nowruz and leap years follow the official Iranian calendar rule and the vernal equinox, not fixed approximate cycles.
 
-## Why This Exists
+## Purpose
 
 Most Jalali date libraries use repeating arithmetic cycles to decide leap years. That is fast, but it is still an approximation. In some years, a cycle can place Nowruz on a different Gregorian day than the official calendar rule.
 
 This library derives each Jalali year from the vernal equinox in Iran civil time. If the equinox occurs before local noon, Nowruz is that civil day; otherwise, Nowruz is the next civil day. Leap years follow from the number of days between one Nowruz and the next.
 
-## What It Provides
+## Features
 
 - Immutable date classes, one for each of the Jalali, Gregorian, and Islamic calendars.
 - Date construction from multiple sources: conversion from another calendar, from a day-of-year, from the nth weekday occurrence in a month or year, and more.

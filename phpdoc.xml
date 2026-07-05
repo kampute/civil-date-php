@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdocumentor configVersion="3" xmlns="https://www.phpdoc.org">
-    <title>civil-date API</title>
+    <title>Civil Date PHP Package</title>
     <paths>
         <output>./.site</output>
         <cache>./.phpdoc-cache</cache>
@@ -14,5 +14,4 @@
             <visibility>protected</visibility>
         </api>
     </version>
-    <template name="./docs/template" />
 </phpdocumentor>

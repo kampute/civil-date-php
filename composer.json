@@ -51,7 +51,7 @@
         "cs-fix": "php-cs-fixer fix",
         "docs": [
             "php vendor/bin/phpdoc --force",
-            "php docs/build-home.php"
+            "php docs/build-docs.php"
         ]
     },
     "minimum-stability": "stable",
