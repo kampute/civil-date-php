@@ -7,6 +7,120 @@ use League\CommonMark\CommonMarkConverter;
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 /**
+ * Runs phpDocumentor before applying the documentation post-processing step.
+ */
+function runPhpDocumentor(string $projectDir): void
+{
+    $configPath = $projectDir . '/.phpdoc-cache/phpdoc.build.xml';
+    writeFileOrFail(
+        $configPath,
+        temporaryPhpDocumentorConfig($projectDir, $projectDir . '/phpdoc.xml'),
+        'temporary phpDocumentor config'
+    );
+
+    $command = implode(' ', [
+        escapeshellarg(PHP_BINARY),
+        escapeshellarg($projectDir . '/vendor/bin/phpdoc'),
+        '--force',
+        '--config=' . escapeshellarg($configPath),
+    ]);
+
+    passthru($command, $exitCode);
+
+    if ($exitCode !== 0) {
+        fail("phpDocumentor failed with exit code {$exitCode}.");
+    }
+}
+
+/**
+ * Builds a temporary phpDocumentor config from phpdoc.xml with absolute paths.
+ */
+function temporaryPhpDocumentorConfig(string $projectDir, string $sourceConfigPath): string
+{
+    $document = new DOMDocument();
+    $document->preserveWhiteSpace = false;
+    $document->formatOutput = true;
+
+    if (!$document->load($sourceConfigPath)) {
+        fail("Unable to parse phpDocumentor config: {$sourceConfigPath}");
+    }
+
+    $xpath = new DOMXPath($document);
+    $xpath->registerNamespace('phpdoc', 'https://www.phpdoc.org');
+
+    setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:output', absolutePath($projectDir . '/.site'));
+    setSingleConfigNode($xpath, '//phpdoc:paths/phpdoc:cache', absolutePath($projectDir . '/.phpdoc-cache'));
+
+    foreach ($xpath->query('//phpdoc:version/phpdoc:api/phpdoc:source') ?: [] as $source) {
+        if (!$source instanceof DOMElement) {
+            continue;
+        }
+
+        $source->setAttribute('dsn', absolutePath($projectDir));
+
+        foreach ($xpath->query('phpdoc:path', $source) ?: [] as $path) {
+            if (!$path instanceof DOMElement) {
+                continue;
+            }
+
+            $path->nodeValue = relativeSourcePath($projectDir, $path->textContent);
+        }
+    }
+
+    $xml = $document->saveXML();
+
+    if ($xml === false) {
+        fail('Unable to serialize temporary phpDocumentor config.');
+    }
+
+    return $xml;
+}
+
+/**
+ * Returns an absolute path using URI-compatible separators.
+ */
+function absolutePath(string $path): string
+{
+    return str_replace('\\', '/', $path);
+}
+
+/**
+ * Sets one required config node value.
+ */
+function setSingleConfigNode(DOMXPath $xpath, string $query, string $value): void
+{
+    $nodes = $xpath->query($query);
+
+    if ($nodes === false || $nodes->length !== 1) {
+        fail("Unable to update phpDocumentor config node: {$query}");
+    }
+
+    $nodes->item(0)->nodeValue = $value;
+}
+
+/**
+ * Returns a source path relative to the project source DSN.
+ */
+function relativeSourcePath(string $projectDir, string $sourcePath): string
+{
+    $sourcePath = trim(str_replace('\\', '/', $sourcePath));
+
+    if ($sourcePath === '' || $sourcePath === '.') {
+        return '.';
+    }
+
+    if ($sourcePath[0] === '/') {
+        $sourcePath = ltrim(relativePath($projectDir, $sourcePath), '/');
+    }
+
+    while (str_starts_with($sourcePath, './')) {
+        $sourcePath = substr($sourcePath, 2);
+    }
+
+    return $sourcePath;
+}
+
+/**
  * Describes a rendered conceptual documentation page.
  */
 final class DocumentationPage
@@ -623,6 +737,10 @@ $projectDir = dirname(__DIR__);
 $siteDir = $projectDir . '/.site';
 $indexPath = $siteDir . '/index.html';
 $topicsDir = $projectDir . '/docs/topics';
+
+if (in_array('--build', $argv, true)) {
+    runPhpDocumentor($projectDir);
+}
 
 $shell = withCustomStylesheet(readFileOrFail($indexPath, 'generated documentation index'));
 $converter = new CommonMarkConverter([

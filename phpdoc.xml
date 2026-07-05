@@ -2,13 +2,13 @@
 <phpdocumentor configVersion="3" xmlns="https://www.phpdoc.org">
     <title>Civil Date PHP Package</title>
     <paths>
-        <output>./.site</output>
-        <cache>./.phpdoc-cache</cache>
+        <output>.site</output>
+        <cache>.phpdoc-cache</cache>
     </paths>
     <version number="latest">
         <api ignore-packages="true">
             <source>
-                <path>./src</path>
+                <path>src</path>
             </source>
             <visibility>public</visibility>
             <visibility>protected</visibility>

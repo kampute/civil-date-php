@@ -50,8 +50,7 @@
         "cs-check": "php-cs-fixer fix --dry-run --diff",
         "cs-fix": "php-cs-fixer fix",
         "docs": [
-            "php vendor/bin/phpdoc --force",
-            "php docs/build-docs.php"
+            "php docs/build-docs.php --build"
         ]
     },
     "minimum-stability": "stable",
